@@ -1,0 +1,7 @@
+{
+    "db_address": "127.0.0.1",
+    "db_port": 3306,
+    "db_user": "REPLACE_THIS_WITH_YOUR_DB_USER",
+    "db_password": "REPLACE_THIS_WITH_YOUR_DB_PASSWORD",
+    "db_name": "REPLACE_THIS_WITH_YOUR_DB_NAME"
+}
