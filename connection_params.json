@@ -3,5 +3,6 @@
     "db_port": 3306,
     "db_user": "REPLACE_THIS_WITH_YOUR_DB_USER",
     "db_password": "REPLACE_THIS_WITH_YOUR_DB_PASSWORD",
-    "db_name": "REPLACE_THIS_WITH_YOUR_DB_NAME"
+    "db_name": "REPLACE_THIS_WITH_YOUR_DB_NAME",
+    "use_dict_cursor": true
 }
