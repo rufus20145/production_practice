@@ -6,6 +6,9 @@ import logging as log
 
 import pymysql
 
+from model.patch_object import PatchObject, PatchObjectEncoder
+from model.task_object import TaskObject, TaskObjectEncoder
+
 FILE = "connection_params.json"
 
 
@@ -16,6 +19,7 @@ class ChangeMonitor:
 
     _max_record_id = 0
     _connection = None
+    cache: "dict[int, TaskObject]" = {}
 
     def __init__(self, file_name=FILE):
         with open(file=file_name, encoding="utf-8") as file:
@@ -31,6 +35,7 @@ class ChangeMonitor:
                 cursorclass=pymysql.cursors.DictCursor
                 if params["use_dict_cursor"]
                 else None,
+                autocommit=True,
             )
             log.info("Connected to database")
         except pymysql.Error as ex:
@@ -38,15 +43,14 @@ class ChangeMonitor:
 
     def _check_connection(self):
         if not self._connection:
-            raise NotInitializedError("Connection wasn't initialized")
+            raise ConnectionError("Connection wasn`t established")
 
-    def get_initial_state(self):
+    def get_initial_state(self) -> str:
         """
         TODO docstring
         """
         self._check_connection()
 
-        result = {}
         with self._connection.cursor() as cursor:
             cursor.execute(
                 """
@@ -67,21 +71,19 @@ class ChangeMonitor:
             for row in rows:
                 if row["record_id"] > self._max_record_id:
                     self._max_record_id = row["record_id"]
-                entity_id = row["id"]
-                foo = row["foo"]
-                bar = row["bar"]
-                row_data = {"foo": foo, "bar": bar}
-                result[entity_id] = row_data
+                entity = TaskObject(row["id"], row["record_id"], row["foo"], row["bar"])
+                self.cache[row["id"]] = entity
 
-        json_data = json.dumps(result, indent=4)
-        print(json_data)
-        print(f"Max record id after initial state: {self._max_record_id}")
+        log.info("Max record id after initial state: %d", self._max_record_id)
+        return json.dumps(self.cache, cls=TaskObjectEncoder)
 
-    def get_patch(self):
+    def get_update(self) -> str:
         """
         TODO docstring
         """
         self._check_connection()
+
+        result_list = []
 
         with self._connection.cursor() as cursor:
             cursor.execute(
@@ -95,8 +97,38 @@ class ChangeMonitor:
             )
             rows = cursor.fetchall()
             for row in rows:
-                print(f"{row['id']}\t{row['record_id']}\t\t{row['foo']}\t{row['bar']}")
                 if row["record_id"] > self._max_record_id:
                     self._max_record_id = row["record_id"]
 
-        print(f"Now max record id after patch: {self._max_record_id}")
+                new_obj = TaskObject(
+                    row["id"], row["record_id"], row["foo"], row["bar"]
+                )
+                if new_obj.entity_id not in self.cache:
+                    self.cache[new_obj.entity_id] = new_obj
+                    result_list.append(
+                        PatchObject(
+                            op="add",
+                            path=f"/{new_obj.entity_id}",
+                            value=json.dumps(new_obj, cls=TaskObjectEncoder),
+                        )
+                    )
+                else:
+                    old_obj = self.cache[new_obj.entity_id]
+                    if new_obj.foo != old_obj.foo:
+                        result_list.append(
+                            PatchObject(
+                                op="replace",
+                                path=f"/{new_obj.entity_id}/foo",
+                                value=new_obj.foo,
+                            )
+                        )
+                    if new_obj.bar != old_obj.bar:
+                        result_list.append(
+                            PatchObject(
+                                op="replace",
+                                path=f"/{new_obj.entity_id}/bar",
+                                value=new_obj.bar,
+                            )
+                        )
+        log.info("Max record id after patch: %d", self._max_record_id)
+        return json.dumps(result_list, cls=PatchObjectEncoder)
