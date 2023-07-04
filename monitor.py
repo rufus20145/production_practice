@@ -2,7 +2,7 @@
 TODO module docstring 
 """
 import json
-import logging
+import logging as log
 
 import pymysql
 
@@ -32,13 +32,20 @@ class ChangeMonitor:
                 if params["use_dict_cursor"]
                 else None,
             )
+            log.info("Connected to database")
         except pymysql.Error as ex:
-            logging.error(ex)
+            log.error("Connection error: %s", ex)
+
+    def _check_connection(self):
+        if not self._connection:
+            raise NotInitializedError("Connection wasn't initialized")
 
     def get_initial_state(self):
         """
         TODO docstring
         """
+        self._check_connection()
+
         result = {}
         with self._connection.cursor() as cursor:
             cursor.execute(
@@ -74,6 +81,8 @@ class ChangeMonitor:
         """
         TODO docstring
         """
+        self._check_connection()
+
         with self._connection.cursor() as cursor:
             cursor.execute(
                 """
