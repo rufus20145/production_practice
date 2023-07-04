@@ -86,17 +86,10 @@ class ChangeMonitor:
         with self._connection.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT t1.id, t1.record_id, t1.foo, t1.bar
-                FROM test_table AS t1
-                JOIN (
-                    SELECT id, MAX(record_id) AS max_record_id
-                    FROM test_table
-                    WHERE record_id > %s
-                    GROUP BY id
-                ) AS t2
-                ON t1.id = t2.id
-                AND t1.record_id = t2.max_record_id
-                ORDER BY id;
+                SELECT id, record_id, foo, bar
+                FROM test_table
+                WHERE record_id > %s
+                ORDER BY record_id;
                 """,
                 (self._max_record_id,),
             )
