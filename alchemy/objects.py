@@ -1,9 +1,12 @@
-from base import Base
+import json
+
 from sqlalchemy import Column, Integer, String
+
+from alchemy.base import Base
 
 
 class Entity(Base):
-    __tablename__ = "test"
+    __tablename__ = "test_table"
 
     entity_id = Column("id", Integer)
     record_id = Column("record_id", Integer, primary_key=True, autoincrement=True)
@@ -15,3 +18,13 @@ class Entity(Base):
         self.record_id = record_id
         self.foo = foo
         self.bar = bar
+
+
+class EntityEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, Entity):
+            return {
+                "foo": o.foo,
+                "bar": o.bar,
+            }
+        return super().default(o)
