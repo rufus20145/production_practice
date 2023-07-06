@@ -1,15 +1,16 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-engine = create_engine(
-    "mysql+pymysql://change_monitor:iCg6ljdc8o?AzKBU@localhost/test_schema"
-)
-# use session_factory() to get a new Session
-_SessionFactory = sessionmaker(bind=engine)
-
 Base = declarative_base()
 
 
-def session_factory():
-    Base.metadata.create_all(engine)
-    return _SessionFactory()
+class Alchemy:
+    def __init__(self, dburl):
+        self._dburl = dburl
+        self._engine = create_engine(dburl)
+        self._session_factory = sessionmaker(bind=self._engine)
+
+    def session_factory(self):
+        """Return a new Session"""
+        Base.metadata.create_all(self._engine)
+        return self._session_factory()
