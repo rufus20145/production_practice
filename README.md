@@ -6,3 +6,4 @@
 * Python 3.8.2
 * MySQL 8.0.33
 * PyMySQL 1.1.0
+* SQLAlchemy 2.0.17
