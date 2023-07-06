@@ -4,11 +4,12 @@ TODO module docstring
 import json
 import logging as log
 
-from cdb.pymysql.connection import PyMySQLConnection
-from model.patch_object import PatchObject, PatchObjectEncoder
-from model.task_object import TaskObject, TaskObjectEncoder
+from sqlalchemy import and_, func
 
-DEFAULT_FILE = "connection_params.json"
+from alchemy.base import Alchemy
+from alchemy.objects import Entity, EntityEncoder
+from errors import ParameterError
+from model.patch_object import Patch, PatchEncoder
 
 
 class ChangeMonitor:
@@ -17,88 +18,97 @@ class ChangeMonitor:
     """
 
     _max_record_id = 0
-    _cache: "dict[int, TaskObject]" = {}
+    _cache: "dict[int, Entity]" = {}
+    _alch: Alchemy
 
-    def __init__(self, file_name=DEFAULT_FILE):
-        with open(file=file_name, encoding="utf-8") as file:
-            params = json.load(file)
-        self._db = PyMySQLConnection(params)
-        log.info("Connected to database")
+    def __init__(self, filename: str = None, dburl: str = None):
+        if dburl:
+            self._alch = Alchemy(dburl=self.dburl)
+        elif filename:
+            self._alch = Alchemy(filename=filename)
+        else:
+            raise ParameterError("No dburl nor filename specified.")
+
+        log.info("Initialized")
 
     def get_initial_state(self) -> str:
         """
         TODO docstring
         """
 
-        rows = self._db.execute(
-            """
-            SELECT t1.id, t1.record_id, t1.foo, t1.bar
-            FROM test_table AS t1
-            JOIN (
-                SELECT id, MAX(record_id) AS max_record_id
-                FROM test_table
-                GROUP BY id
-            ) AS t2
-            ON t1.id = t2.id
-            AND t1.record_id = t2.max_record_id
-            ORDER BY id;
-            """
-        )
-        for row in rows:
-            if row["record_id"] > self._max_record_id:
-                self._max_record_id = row["record_id"]
-            entity = TaskObject(row["id"], row["record_id"], row["foo"], row["bar"])
+        with self._alch.session_factory() as session:
+            subq = (
+                session.query(
+                    Entity.entity_id, func.max(Entity.record_id).label("max_record_id")
+                )
+                .group_by(Entity.entity_id)
+                .subquery("t2")
+            )
+            query = (
+                session.query(Entity)
+                .join(
+                    subq,
+                    and_(
+                        Entity.entity_id == subq.c.entity_id,
+                        Entity.record_id == subq.c.max_record_id,
+                    ),
+                )
+                .order_by(Entity.entity_id)
+            )
+            entites = query.all()
+
+        for entity in entites:
+            if entity.record_id > self._max_record_id:
+                self._max_record_id = entity.record_id
             self._cache[entity.entity_id] = entity
 
         log.info("Max record id after initial state: %d", self._max_record_id)
-        return json.dumps(self._cache, cls=TaskObjectEncoder)
+        return json.dumps(self._cache, cls=EntityEncoder)
 
     def get_update(self) -> str:
         """
         TODO docstring
         """
-        result_list = []
+        patch_list: list[Patch] = []
 
-        rows = self._db.execute(
-            """
-                SELECT id, record_id, foo, bar
-                FROM test_table
-                WHERE record_id > %s
-                ORDER BY record_id;
-                """,
-            (self._max_record_id,),
-        )
-        for row in rows:
-            if row["record_id"] > self._max_record_id:
-                self._max_record_id = row["record_id"]
+        with self._alch.session_factory() as session:
+            query = (
+                session.query(Entity)
+                .filter(Entity.record_id > self._max_record_id)
+                .order_by(Entity.record_id)
+            )
+            entites = query.all()
 
-            new_obj = TaskObject(row["id"], row["record_id"], row["foo"], row["bar"])
-            if new_obj.entity_id not in self._cache:
-                self._cache[new_obj.entity_id] = new_obj
-                result_list.append(
-                    PatchObject(
+        for entity in entites:
+            if entity.record_id > self._max_record_id:
+                self._max_record_id = entity.record_id
+
+            if entity.entity_id not in self._cache:
+                self._cache[entity.entity_id] = entity
+                patch_list.append(
+                    Patch(
                         op="add",
-                        path=f"/{new_obj.entity_id}",
-                        value=json.dumps(new_obj, cls=TaskObjectEncoder),
+                        path=f"/{entity.entity_id}",
+                        value=json.dumps(entity, cls=EntityEncoder),
                     )
                 )
             else:
-                old_obj = self._cache[new_obj.entity_id]
-                if new_obj.foo != old_obj.foo:
-                    result_list.append(
-                        PatchObject(
-                            op="replace",
-                            path=f"/{new_obj.entity_id}/foo",
-                            value=new_obj.foo,
+                entity_old = self._cache[entity.entity_id]
+                # TODO сделать обход всех полей по списку для устранения дублирования
+                if entity.foo != entity_old.foo:
+                    patch_list.append(
+                        Patch(
+                            path=f"/{entity.entity_id}/foo",
+                            value=entity.foo,
                         )
                     )
-                if new_obj.bar != old_obj.bar:
-                    result_list.append(
-                        PatchObject(
-                            op="replace",
-                            path=f"/{new_obj.entity_id}/bar",
-                            value=new_obj.bar,
+                if entity.bar != entity_old.bar:
+                    patch_list.append(
+                        Patch(
+                            path=f"/{entity.entity_id}/bar",
+                            value=entity.bar,
                         )
                     )
+
         log.info("Max record id after patch: %d", self._max_record_id)
-        return json.dumps(result_list, cls=PatchObjectEncoder)
+        return json.dumps(patch_list, cls=PatchEncoder)
