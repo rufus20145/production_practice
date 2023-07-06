@@ -6,6 +6,7 @@ Base = declarative_base()
 
 class Alchemy:
     def __init__(self, dburl):
+        # TODO Добавить обработку, если передан файл с параметрами
         self._dburl = dburl
         self._engine = create_engine(dburl)
         self._session_factory = sessionmaker(bind=self._engine)
