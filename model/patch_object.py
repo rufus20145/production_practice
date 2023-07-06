@@ -1,16 +1,16 @@
 import json
 
 
-class PatchObject:
-    def __init__(self, op="patch", path=None, value=None):
+class Patch:
+    def __init__(self, op="replace", path=None, value=None):
         self.op = op
         self.path = path
         self.value = value
 
 
-class PatchObjectEncoder(json.JSONEncoder):
+class PatchEncoder(json.JSONEncoder):
     def default(self, o):
-        if isinstance(o, PatchObject):
+        if isinstance(o, Patch):
             return {
                 "op": o.op,
                 "path": o.path,
