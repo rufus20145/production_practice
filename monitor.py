@@ -11,6 +11,8 @@ from alchemy.objects import Entity, EntityEncoder
 from errors import ParameterError
 from model.patch_object import Patch, PatchEncoder
 
+func: callable
+
 
 class ChangeMonitor:
     """
@@ -23,7 +25,7 @@ class ChangeMonitor:
 
     def __init__(self, filename: str = None, dburl: str = None):
         if dburl:
-            self._alch = Alchemy(dburl=self.dburl)
+            self._alch = Alchemy(dburl=dburl)
         elif filename:
             self._alch = Alchemy(filename=filename)
         else:
