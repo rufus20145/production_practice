@@ -25,13 +25,13 @@ if __name__ == "__main__":
     elif filename:
         api = ChangeMonitor(filename=filename)
     else:
-        log.warn("No dburl or filename specified. Using default.")
+        log.warning("No dburl or filename specified. Using default.")
         api = ChangeMonitor(filename=DEFAULT_FILENAME)
 
     init_state = api.get_initial_state()
-    print(f"got inital data\n{init_state}")
+    print(f"Получено изначальное состояние всех объектов:\n{init_state}")
 
-    input("Нажмите Enter, чтобы продолжить")
+    input("Нажмите Enter, чтобы получить изменения...")
 
     update = api.get_update()
-    print(f"got update data\n{update}")
+    print(f"Получены изменения:\n{update}")
