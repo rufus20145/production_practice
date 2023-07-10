@@ -71,7 +71,7 @@ class ChangeMonitor:
         """
         TODO docstring
         """
-        patch_list: list[Patch] = []
+        patch_list: "list[Patch]" = []
 
         with self._alch.session_factory() as session:
             query = (
@@ -96,21 +96,15 @@ class ChangeMonitor:
                 )
             else:
                 entity_old = self._cache[entity.entity_id]
-                # TODO сделать обход всех полей по списку для устранения дублирования
-                if entity.foo != entity_old.foo:
-                    patch_list.append(
-                        Patch(
-                            path=f"/{entity.entity_id}/foo",
-                            value=entity.foo,
+                for field in Entity.relevant_atributes:
+                    if getattr(entity, field) != getattr(entity_old, field):
+                        patch_list.append(
+                            Patch(
+                                path=f"/{entity.entity_id}/{field}",
+                                value=getattr(entity, field),
+                            )
                         )
-                    )
-                if entity.bar != entity_old.bar:
-                    patch_list.append(
-                        Patch(
-                            path=f"/{entity.entity_id}/bar",
-                            value=entity.bar,
-                        )
-                    )
+
 
         log.info("Max record id after patch: %d", self._max_record_id)
         return json.dumps(patch_list, cls=PatchEncoder)

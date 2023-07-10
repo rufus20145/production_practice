@@ -7,6 +7,10 @@ from alchemy.base import Base
 
 class Entity(Base):
     __tablename__ = "test_table"
+    relevant_atributes = [
+        "foo",
+        "bar",
+    ]  # при добавлении новых атрибутов необходимо обновить этот список
 
     entity_id = Column("id", Integer)
     record_id = Column("record_id", Integer, primary_key=True, autoincrement=True)
