@@ -1,8 +1,9 @@
 {
-    "db_address": "127.0.0.1",
-    "db_port": 3306,
-    "db_user": "REPLACE_THIS_WITH_YOUR_DB_USER",
-    "db_password": "REPLACE_THIS_WITH_YOUR_DB_PASSWORD",
-    "db_name": "REPLACE_THIS_WITH_YOUR_DB_NAME",
-    "use_dict_cursor": true
+    "dialect" : "SQLAlchemy_dialect",
+    "driver" : "db_driver",
+    "username": "db_user",
+    "password": "db_password",
+    "host": "db_host",
+    "port": 12345,
+    "database": "db_name"
 }
