@@ -8,7 +8,6 @@ from sqlalchemy import and_, func
 
 from alchemy.base import Alchemy
 from alchemy.objects import Entity, EntityEncoder
-from errors import ParameterError
 from model.patch_object import Patch, PatchEncoder
 
 func: callable
@@ -23,13 +22,13 @@ class ChangeMonitor:
     _cache: "dict[int, Entity]" = {}
     _alch: Alchemy
 
-    def __init__(self, filename: str = None, dburl: str = None):
-        if dburl:
-            self._alch = Alchemy(dburl=dburl)
-        elif filename:
-            self._alch = Alchemy(filename=filename)
-        else:
-            raise ParameterError("No dburl nor filename specified.")
+    def __init__(
+        self,
+        filename: str = None,
+        dburl: str = None,
+    ):
+        self._alch = Alchemy(dburl=dburl, filename=filename)
+
 
         log.info("Initialized")
 
