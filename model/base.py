@@ -1,11 +1,11 @@
 import json
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import sessionmaker
+
+from model.model import Base
 
 from errors import ParameterError
-
-Base = declarative_base()
 
 
 class Alchemy:
@@ -35,6 +35,11 @@ class Alchemy:
         self._engine = create_engine(dburl)
         self._session_factory = sessionmaker(bind=self._engine)
 
+    def get_session(self):
+        """Возвращает сессию"""
+        Base.metadata.create_all(self._engine)
+        return self._session_factory()
+
     def _check_required_fields(self, data):
         required_fields = [
             "dialect",
@@ -55,8 +60,3 @@ class Alchemy:
             raise ParameterError(
                 f"Missing fields in configuration file: {', '.join(missing_fields)}"
             )
-
-    def session_factory(self):
-        """Return a new Session"""
-        Base.metadata.create_all(self._engine)
-        return self._session_factory()

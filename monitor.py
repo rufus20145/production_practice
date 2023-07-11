@@ -6,9 +6,8 @@ import logging as log
 
 from sqlalchemy import and_, func
 
-from alchemy.base import Alchemy
-from alchemy.objects import Entity, EntityEncoder
-from model.patch_object import Patch, PatchEncoder
+from model.base import Alchemy
+from model.model import Entity, EntityEncoder, Patch, PatchEncoder
 
 func: callable
 
@@ -37,7 +36,7 @@ class ChangeMonitor:
         TODO docstring
         """
 
-        with self._alch.session_factory() as session:
+        with self._alch.get_session() as session:
             subq = (
                 session.query(
                     Entity.entity_id, func.max(Entity.record_id).label("max_record_id")
@@ -72,7 +71,7 @@ class ChangeMonitor:
         """
         patch_list: "list[Patch]" = []
 
-        with self._alch.session_factory() as session:
+        with self._alch.get_session() as session:
             query = (
                 session.query(Entity)
                 .filter(Entity.record_id > self._max_record_id)
@@ -88,7 +87,7 @@ class ChangeMonitor:
                 self._cache[entity.entity_id] = entity
                 patch_list.append(
                     Patch(
-                        op="add",
+                        operation="add",
                         path=f"/{entity.entity_id}",
                         value=json.dumps(entity, cls=EntityEncoder),
                     )
