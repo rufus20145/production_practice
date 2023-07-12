@@ -1,10 +1,10 @@
 """
-TODO module docstring 
+TODO module docstring
 """
 import json
 import logging as log
 
-from sqlalchemy import and_, func
+import sqlalchemy as sa
 
 from model.base import Alchemy
 from model.model import Entity, EntityEncoder, Patch, PatchEncoder
@@ -28,7 +28,6 @@ class ChangeMonitor:
     ):
         self._alch = Alchemy(dburl=dburl, filename=filename)
 
-
         log.info("Initialized")
 
     def get_initial_state(self) -> str:
@@ -38,24 +37,26 @@ class ChangeMonitor:
 
         with self._alch.get_session() as session:
             subq = (
-                session.query(
-                    Entity.entity_id, func.max(Entity.record_id).label("max_record_id")
+                sa.select(
+                    Entity.entity_id,
+                    sa.func.max(Entity.record_id).label("max_record_id"),
                 )
                 .group_by(Entity.entity_id)
                 .subquery("t2")
             )
             query = (
-                session.query(Entity)
+                sa.select(Entity)
                 .join(
                     subq,
-                    and_(
-                        Entity.entity_id == subq.c.entity_id,
+                    sa.and_(
                         Entity.record_id == subq.c.max_record_id,
                     ),
                 )
                 .order_by(Entity.entity_id)
             )
-            entites = query.all()
+
+            result = session.scalars(query)
+            entites = result.all()
 
         for entity in entites:
             if entity.record_id > self._max_record_id:
@@ -63,6 +64,7 @@ class ChangeMonitor:
             self._cache[entity.entity_id] = entity
 
         log.info("Max record id after initial state: %d", self._max_record_id)
+        log.debug("Number of entities: %d", len(entites))
         return json.dumps(self._cache, cls=EntityEncoder)
 
     def get_update(self) -> str:
@@ -73,11 +75,13 @@ class ChangeMonitor:
 
         with self._alch.get_session() as session:
             query = (
-                session.query(Entity)
+                sa.select(Entity)
                 .filter(Entity.record_id > self._max_record_id)
                 .order_by(Entity.record_id)
             )
-            entites = query.all()
+
+            result = session.scalars(query)
+            entites = result.all()
 
         for entity in entites:
             if entity.record_id > self._max_record_id:
@@ -102,7 +106,6 @@ class ChangeMonitor:
                                 value=getattr(entity, field),
                             )
                         )
-
 
         log.info("Max record id after patch: %d", self._max_record_id)
         return json.dumps(patch_list, cls=PatchEncoder)
