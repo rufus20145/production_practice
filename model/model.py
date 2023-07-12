@@ -1,11 +1,11 @@
 import json
 
-from sqlalchemy import Column, Integer, String
-from sqlalchemy.orm import declarative_base
+import sqlalchemy as sa
+import sqlalchemy.orm as so
 
 from errors import ParameterError
 
-Base = declarative_base()
+Base = so.declarative_base()
 
 
 class Entity(Base):
@@ -17,12 +17,10 @@ class Entity(Base):
         "bar",
     ]  # при добавлении новых атрибутов необходимо обновить этот список
 
-    entity_id = Column("id", Integer)
-    record_id = Column(
-        "record_id", Integer, primary_key=True, autoincrement=True
-    )
-    foo = Column("foo", String(255), nullable=False)
-    bar = Column("bar", String(255), nullable=False)
+    entity_id: so.Mapped[int] = so.mapped_column("id", sa.Integer)
+    record_id: so.Mapped[int] = so.mapped_column(sa.Integer, primary_key=True)
+    foo: so.Mapped[str] = so.mapped_column(sa.String(255), nullable=False)
+    bar: so.Mapped[str] = so.mapped_column(sa.String(255), nullable=False)
 
     def __init__(self, entity_id, foo, bar, record_id=None):
         self.entity_id = entity_id
