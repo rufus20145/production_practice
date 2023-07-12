@@ -33,11 +33,11 @@ class Alchemy:
             )
 
         self._engine = create_engine(dburl)
+        Base.metadata.create_all(self._engine)
         self._session_factory = sessionmaker(bind=self._engine)
 
     def get_session(self):
         """Возвращает сессию"""
-        Base.metadata.create_all(self._engine)
         return self._session_factory()
 
     def _check_required_fields(self, data):
