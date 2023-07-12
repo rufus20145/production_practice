@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <title>One object by id</title>
+  </head>
+  <body>
+    <h1>Object with id {{ entity_id }}</h1>
+
+    {% if entities %}
+      <table>
+        <caption>History of change:</caption>
+        <tr>
+          <th>Record ID</th>
+          <th>Foo</th>
+          <th>Bar</th>
+        </tr>
+        {% for entity in entities %}
+          <tr>
+            <td>{{ entity.record_id }}</td>
+            <td>{{ entity.foo }}</td>
+            <td>{{ entity.bar }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+    {% else %}
+      <h2>There is no history for this object</h2>
+    {% endif %}
+  </body>
+</html>

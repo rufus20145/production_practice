@@ -7,3 +7,5 @@
 * MySQL 8.0.33
 * PyMySQL 1.1.0
 * SQLAlchemy 2.0.17
+* FastAPI 0.100.0
+* uvicorn 0.22.0
