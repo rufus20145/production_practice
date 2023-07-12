@@ -26,7 +26,7 @@ class Alchemy:
                 port = data["port"]
                 database = data["database"]
 
-                dburl = f"{dialect}+{driver}://{username}:{password}@{host}:{port}/{database}"
+                dburl = f"{dialect}+{driver}://{username}:{password}@{host}:{port}/{database}"  # noqa: E501
         else:
             raise ParameterError(
                 "No dburl or filename specified. Unable to initialize."
@@ -58,5 +58,5 @@ class Alchemy:
 
         if missing_fields:
             raise ParameterError(
-                f"Missing fields in configuration file: {', '.join(missing_fields)}"
+                f"Missing fields in configuration file: {', '.join(missing_fields)}"  # noqa: E501
             )

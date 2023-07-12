@@ -13,8 +13,14 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--dburl", help="URL for the database in SQLAlchemy format")
-    parser.add_argument("--filename", help="Name of the file with database params")
+    parser.add_argument(
+        "--dburl",
+        help="URL for the database in SQLAlchemy format",
+    )
+    parser.add_argument(
+        "--filename",
+        help="Name of the file with database params",
+    )
     args = parser.parse_args()
 
     dburl = args.dburl

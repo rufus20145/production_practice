@@ -18,7 +18,9 @@ class Entity(Base):
     ]  # при добавлении новых атрибутов необходимо обновить этот список
 
     entity_id = Column("id", Integer)
-    record_id = Column("record_id", Integer, primary_key=True, autoincrement=True)
+    record_id = Column(
+        "record_id", Integer, primary_key=True, autoincrement=True
+    )
     foo = Column("foo", String(255), nullable=False)
     bar = Column("bar", String(255), nullable=False)
 
@@ -33,7 +35,7 @@ class Patch:
     """Объект для возврата в формате JSON Patch"""
 
     # полный список
-    # _SUPPORTED_OPERATIONS = ["add", "remove", "replace", "move", "copy", "test"]
+    # _SUPPORTED_OPERATIONS = ["add", "remove", "replace", "move", "copy", "test"] # noqa: E501
 
     # список допустимых в данной задаче
     _SUPPORTED_OPERATIONS = ["add", "replace"]
