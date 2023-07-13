@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <title>API Keys</title>
+  </head>
+  <body>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Created At</th>
+          <th>Valid until</th>
+          <th></th>
+          <th>key</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for api_key in api_keys %}
+          <tr>
+            <td>{{ api_key.name }}</td>
+            <td>{{ api_key.description }}</td>
+            <td>{{ api_key.created_at }}</td>
+            <td>{{ api_key.valid_until }}</td>
+            <td></td>
+            <td>{{ api_key.key }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </body>
+</html>

@@ -1,15 +1,18 @@
-from fastapi import FastAPI, HTTPException, Request, status
-from fastapi.responses import HTMLResponse, FileResponse
+from typing_extensions import Annotated
+from fastapi import FastAPI, Form, HTTPException, Request, status
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-
 import uvicorn
 import sqlalchemy as sa
 
+from api_keys import ApiKey
 from model.base import Alchemy
 from model.model import Entity
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+api_keys = []
+
 # TODO переделать favicon как тут https://stackoverflow.com/a/70075352/21970878
 # это решение выглядит более красиво
 favicon_path = "favicon.ico"
@@ -65,9 +68,27 @@ def get_object(request: Request, entity_id: int):
 
 @app.get("/api/v1/start", response_class=HTMLResponse)
 async def start(request: Request):
-    return "It's still under construction"
-    # return templates.TemplateResponse("api_start.html", {"request": request})
+    return templates.TemplateResponse("api_start.html", {"request": request})
+
+
+@app.post("/api/v1/create", response_class=JSONResponse)
+async def create_api_key(
+    name: Annotated[str, Form()],
+    description: Annotated[str, Form()],
+):
+    api_key = ApiKey(name=name, description=description)
+    api_keys.append(api_key)
+
+    return api_key
+
+
+@app.get("/api/v1/keys", response_class=HTMLResponse)
+async def get_api_keys(request: Request):
+    return templates.TemplateResponse(
+        "api_keys.html", {"request": request, "api_keys": api_keys}
+    )
 
 
 if __name__ == "__main__":
+    # made for debug purposes
     uvicorn.run(app, host="127.0.0.1", port=8000)
