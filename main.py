@@ -7,10 +7,14 @@ import sqlalchemy as sa
 
 from model.base import Alchemy
 from model.model import ApiKey, Entity
+from monitor import ChangeMonitor
+
+DEFAULT_FILENAME = "connection_params.json"
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
-db = Alchemy(filename="connection_params.json")
+db = Alchemy(filename=DEFAULT_FILENAME)
+monitors = {}
 
 # TODO переделать favicon как тут https://stackoverflow.com/a/70075352/21970878
 # это решение выглядит более красиво
@@ -92,6 +96,31 @@ async def get_api_keys(request: Request):
     return templates.TemplateResponse(
         "api_keys.html", {"request": request, "api_keys": api_keys}
     )
+
+
+@app.get("/api/v1/get_initial_data")
+def get_initial_data(api_key: str):
+    with db.get_session() as session:
+        query = sa.select(ApiKey).filter(ApiKey.key == api_key)
+        result = session.scalar(query)
+    if result is None:
+        raise HTTPException(status_code=404, detail="API key not found")
+    if result.is_valid:
+        monitor = ChangeMonitor(DEFAULT_FILENAME)
+        monitors[api_key] = monitor
+        return monitor.get_initial_state()
+
+
+@app.get("/api/v1/get_updates")
+def get_updates(api_key: str):
+    with db.get_session() as session:
+        query = sa.select(ApiKey).filter(ApiKey.key == api_key)
+        result = session.scalar(query)
+    if result is None:
+        raise HTTPException(status_code=404, detail="API key not found")
+    if result.is_valid and monitors[api_key]:
+        monitor = monitors[api_key]
+        return monitor.get_update()
 
 
 if __name__ == "__main__":

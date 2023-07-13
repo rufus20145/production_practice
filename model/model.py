@@ -69,6 +69,9 @@ class ApiKey(Base):
 
         self.key = self._generate_api_key()
 
+    def is_valid(self) -> bool:
+        return self.valid_until > dt.datetime.now()
+
     @staticmethod
     def _generate_api_key():
         return secrets.token_hex(KEY_LENGTH)
