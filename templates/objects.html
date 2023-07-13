@@ -17,7 +17,9 @@
       <tbody>
         {% for entity in entities %}
           <tr>
-            <td>{{ entity.entity_id }}</td>
+            <td>
+              <a href="/objects/{{ entity.entity_id }}"><button>{{ entity.entity_id }}</button></a>
+            </td>
             <td>{{ entity.record_id }}</td>
             <td>{{ entity.foo }}</td>
             <td>{{ entity.bar }}</td>
