@@ -6,20 +6,26 @@
   <body>
     <h1>All Objects</h1>
     <table>
-      <tr>
-        <th>Entity ID</th>
-        <th>Record ID</th>
-        <th>Foo</th>
-        <th>Bar</th>
-      </tr>
-      {% for entity in entities %}
+      <thead>
         <tr>
-          <td>{{ entity.entity_id }}</td>
-          <td>{{ entity.record_id }}</td>
-          <td>{{ entity.foo }}</td>
-          <td>{{ entity.bar }}</td>
+          <th>Entity ID</th>
+          <th>Record ID</th>
+          <th>Foo</th>
+          <th>Bar</th>
         </tr>
-      {% endfor %}
+      </thead>
+      <tbody>
+        {% for entity in entities %}
+          <tr>
+            <td>{{ entity.entity_id }}</td>
+            <td>{{ entity.record_id }}</td>
+            <td>{{ entity.foo }}</td>
+            <td>{{ entity.bar }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
     </table>
+
+    <a href="/"><button style="margin-top: 25px;">Back to main page</button></a>
   </body>
 </html>
