@@ -1,4 +1,6 @@
+import datetime as dt
 import json
+import secrets
 
 import sqlalchemy as sa
 import sqlalchemy.orm as so
@@ -6,6 +8,7 @@ import sqlalchemy.orm as so
 from errors import ParameterError
 
 Base = so.declarative_base()
+KEY_LENGTH: int = 16
 
 
 class Entity(Base):
@@ -27,6 +30,48 @@ class Entity(Base):
         self.record_id = record_id
         self.foo = foo
         self.bar = bar
+
+
+class ApiKey(Base):
+    __tablename__ = "api_keys"
+
+    api_key_id: so.Mapped[int] = so.mapped_column(
+        "id", sa.Integer, primary_key=True
+    )
+    name: so.Mapped[str] = so.mapped_column(sa.String(255), nullable=False)
+    description: so.Mapped[str] = so.mapped_column(
+        sa.String(500), nullable=False
+    )
+    created_at: so.Mapped[dt.datetime] = so.mapped_column(
+        sa.DateTime, default=dt.datetime.now()
+    )
+    valid_until: so.Mapped[dt.datetime] = so.mapped_column(
+        sa.DateTime,
+        default=dt.datetime.now().replace(month=dt.datetime.now().month + 1),
+    )
+    key: so.Mapped[str] = so.mapped_column(sa.String(KEY_LENGTH * 2))
+
+    def __init__(
+        self,
+        name: str,
+        description: str,
+        created_at: dt.datetime = None,
+        valid_until: dt.datetime = None,
+    ):
+        self.name = name
+        self.description = description
+        self.created_at = created_at if created_at else dt.datetime.now()
+        self.valid_until = (
+            valid_until
+            if valid_until
+            else dt.datetime.now().replace(month=dt.datetime.now().month)
+        )
+
+        self.key = self._generate_api_key()
+
+    @staticmethod
+    def _generate_api_key():
+        return secrets.token_hex(KEY_LENGTH)
 
 
 class Patch:
