@@ -5,13 +5,12 @@ from fastapi.templating import Jinja2Templates
 import uvicorn
 import sqlalchemy as sa
 
-from api_keys import ApiKey
 from model.base import Alchemy
-from model.model import Entity
+from model.model import ApiKey, Entity
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
-api_keys = []
+db = Alchemy(filename="connection_params.json")
 
 # TODO переделать favicon как тут https://stackoverflow.com/a/70075352/21970878
 # это решение выглядит более красиво
@@ -31,8 +30,7 @@ async def favicon():
 @app.get("/objects", response_class=HTMLResponse)
 @app.get("/objects/all", response_class=HTMLResponse)
 def get_all_objects(request: Request):
-    _alch = Alchemy(filename="connection_params.json")
-    with _alch.get_session() as session:
+    with db.get_session() as session:
         query = sa.select(Entity)
         result = session.scalars(query)
         entities = result.all()
@@ -48,8 +46,7 @@ def get_object(request: Request, entity_id: int):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid entity id"
         )
-    _alch = Alchemy(filename="connection_params.json")
-    with _alch.get_session() as session:
+    with db.get_session() as session:
         query = sa.select(Entity).filter(Entity.entity_id == entity_id)
         result = session.scalars(query)
         entities = result.all()
@@ -77,13 +74,21 @@ async def create_api_key(
     description: Annotated[str, Form()],
 ):
     api_key = ApiKey(name=name, description=description)
-    api_keys.append(api_key)
+
+    with db.get_session() as session:
+        session.add(api_key)
+        session.commit()
 
     return api_key
 
 
 @app.get("/api/v1/keys", response_class=HTMLResponse)
 async def get_api_keys(request: Request):
+    with db.get_session() as session:
+        query = sa.select(ApiKey)
+        result = session.scalars(query)
+        api_keys = list(result.all())
+
     return templates.TemplateResponse(
         "api_keys.html", {"request": request, "api_keys": api_keys}
     )
