@@ -2,16 +2,17 @@
 <html lang="ru">
   <head>
     <title>Create API Key</title>
-    
   </head>
   <body>
     <h1>Create API Key</h1>
-    <form action="/api/v1/create", method="POST">
+    <form action="/api/v1/create" method="POST">
       <label for="name">Name:</label>
       <input type="text" id="name" name="name" required /><br /><br />
       <label for="description">Description:</label>
       <textarea id="description" name="description" required></textarea><br /><br />
       <input type="submit" value="Create" />
     </form>
+
+    <a href="/"><button style="margin-top: 25px;">Back to main page</button></a>
   </body>
 </html>
