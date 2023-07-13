@@ -1,15 +1,25 @@
 import json
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from model.model import Base
-
 from errors import ParameterError
 
 
 class Alchemy:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
     def __init__(self, dburl=None, filename=None):
+        if hasattr(self, "_initialized"):
+            return
+
+        self._initialized = True
+
         if dburl:
             self._dburl = dburl
         elif filename:
