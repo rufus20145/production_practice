@@ -1,24 +1,29 @@
 <!DOCTYPE html>
 <html lang="ru">
   <head>
-    <title>My Web Page</title>
+    <title>Info</title>
     <script>
       function redirectToObject() {
-        alert('It`s still under construction')
+        event.preventDefault()
+        window.location.replace('/objects/' + document.getElementById('objectId').value)
       }
     </script>
   </head>
   <body>
-    <h1>Welcome to My Web Page</h1>
+    <h1>Information about stored objects</h1>
 
     <a href="/objects"><button>Show All Objects</button></a>
 
-    <a href="/api/v1/start"><button>Start API</button></a>
-
     <form id="objectIdForm" onsubmit="redirectToObject()">
+      <br />
       <label for="objectId">Enter Object ID:</label>
-      <input type="text" id="objectId" name="objectId" required />
-      <button class="button" type="submit">Submit</button>
+      <input type="number" id="objectId" name="objectId" required />
+      <button class="button" type="submit">Show</button>
     </form>
+    <br />
+
+    <h1>Information about API Keys</h1>
+    <a href="/api/v1/keys"><button type="button">Show All Keys</button></a>
+    <a href="/api/v1/start"><button>Create new key</button></a>
   </body>
 </html>
