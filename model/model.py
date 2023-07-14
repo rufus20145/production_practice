@@ -116,3 +116,16 @@ class PatchEncoder(json.JSONEncoder):
                 "value": o.value,
             }
         return super().default(o)
+
+
+class ApiKeyEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, ApiKey):
+            return {
+                "name": o.name,
+                "description": o.description,
+                "created_at": o.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                "valid_until": o.valid_until.strftime("%Y-%m-%d %H:%M:%S"),
+                "key": o.key,
+            }
+        return super().default(o)

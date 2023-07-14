@@ -1,3 +1,4 @@
+import json
 from typing_extensions import Annotated
 from fastapi import FastAPI, Form, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
@@ -6,7 +7,7 @@ import uvicorn
 import sqlalchemy as sa
 
 from model.base import Alchemy
-from model.model import ApiKey, Entity
+from model.model import ApiKey, ApiKeyEncoder, Entity
 from monitor import ChangeMonitor
 
 DEFAULT_FILENAME = "connection_params.json"
@@ -81,9 +82,10 @@ async def create_api_key(
 
     with db.get_session() as session:
         session.add(api_key)
+        json_response = json.dumps(api_key, cls=ApiKeyEncoder)
         session.commit()
 
-    return api_key
+    return json_response
 
 
 @app.get("/api/v1/keys", response_class=HTMLResponse)
