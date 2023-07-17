@@ -1,7 +1,8 @@
 import json
 from typing_extensions import Annotated
 from fastapi import FastAPI, Form, HTTPException, Request, status
-from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import uvicorn
 import sqlalchemy as sa
@@ -13,13 +14,10 @@ from monitor import ChangeMonitor
 DEFAULT_FILENAME = "connection_params.json"
 
 app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 db = Alchemy(filename=DEFAULT_FILENAME)
 monitors = {}
-
-# TODO переделать favicon как тут https://stackoverflow.com/a/70075352/21970878
-# это решение выглядит более красиво
-favicon_path = "favicon.ico"
 
 
 @app.get("/")
@@ -29,7 +27,7 @@ async def root(request: Request):
 
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
-    return FileResponse(favicon_path)
+    return FileResponse("static/images/favicon.ico")
 
 
 @app.get("/objects", response_class=HTMLResponse)
