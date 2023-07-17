@@ -99,9 +99,9 @@ async def get_api_keys(request: Request):
 
 
 @app.get("/api/v1/get_initial_data", response_class=HTMLResponse)
-def get_initial_data(api_key: str):
+def get_initial_data(api_key_str: str):
     with db.get_session() as session:
-        query = sa.select(ApiKey).filter(ApiKey.key == api_key)
+        query = sa.select(ApiKey).filter(ApiKey.key == api_key_str)
         api_key = session.scalar(query)
     if api_key is None:
         raise HTTPException(
@@ -118,13 +118,10 @@ def get_initial_data(api_key: str):
         return monitor.get_initial_state()
 
 
-# TODO пофиксить повторное использование переменной api_key
-
-
 @app.get("/api/v1/get_updates", response_class=HTMLResponse)
-def get_updates(api_key: str):
+def get_updates(api_key_str: str):
     with db.get_session() as session:
-        query = sa.select(ApiKey).filter(ApiKey.key == api_key)
+        query = sa.select(ApiKey).filter(ApiKey.key == api_key_str)
         api_key = session.scalar(query)
     if api_key is None:
         raise HTTPException(
