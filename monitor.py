@@ -1,5 +1,9 @@
 """
-TODO module docstring
+API для отслеживания изменений объектов. Для работы необходимо передать
+в конструктор строку с URL в формате SQLAlchemy, либо имя файла, в котором
+находятся параметры, необходимые для подключения к базе данных.
+При вызове метода получения обновлений ранее метода получения
+начального состояния правильная работа не гарантируется.
 """
 import json
 import logging as log
@@ -13,10 +17,6 @@ func: callable
 
 
 class ChangeMonitor:
-    """
-    TODO class docstring
-    """
-
     _max_record_id = 0
     _cache: "dict[int, Entity]" = {}
     _alch: Alchemy
@@ -31,10 +31,6 @@ class ChangeMonitor:
         log.info("Initialized")
 
     def get_initial_state(self) -> str:
-        """
-        TODO docstring
-        """
-
         with self._alch.get_session() as session:
             subq = (
                 sa.select(
@@ -68,9 +64,6 @@ class ChangeMonitor:
         return json.dumps(self._cache, cls=EntityEncoder)
 
     def get_update(self) -> str:
-        """
-        TODO docstring
-        """
         patch_list: "list[Patch]" = []
 
         with self._alch.get_session() as session:

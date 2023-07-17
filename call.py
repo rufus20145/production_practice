@@ -1,5 +1,8 @@
 """
-TODO module docstring
+Модуль для тестовых запусков полученного API.
+Принимает URL в формате SQLAlchemy или имя файла с параметрами подключения.
+Если не указано имя файла, то используется файл connection_params.json
+Полученные ответы печатает в консоль.
 """
 import argparse
 import logging as log
