@@ -5,10 +5,12 @@ API для отслеживания изменений объектов. Для 
 При вызове метода получения обновлений ранее метода получения
 начального состояния правильная работа не гарантируется.
 """
+from enum import Enum
 import json
 import logging as log
 
 import sqlalchemy as sa
+from errors import WrongStateError
 
 from model.base import Alchemy
 from model.model import Entity, EntityEncoder, Patch, PatchEncoder
@@ -27,10 +29,15 @@ class ChangeMonitor:
         dburl: str = None,
     ):
         self._alch = Alchemy(dburl=dburl, filename=filename)
+        self._state = States.INITIALIZED
 
         log.info("Initialized")
 
     def get_initial_state(self) -> str:
+        if self._state != States.INITIALIZED:
+            raise WrongStateError(
+                "Can`t get initial state, because state is %s" % self._state
+            )
         with self._alch.get_session() as session:
             subq = (
                 sa.select(
@@ -61,9 +68,16 @@ class ChangeMonitor:
 
         log.info("Max record id after initial state: %d", self._max_record_id)
         log.debug("Number of entities: %d", len(entites))
-        return json.dumps(self._cache, cls=EntityEncoder)
+        try:
+            return json.dumps(self._cache, cls=EntityEncoder)
+        finally:
+            self._state = States.GOT_INITIAL_STATE
 
     def get_update(self) -> str:
+        if self._state != States.GOT_INITIAL_STATE:
+            raise WrongStateError(
+                "Can`t get update, because you didn`t call get_initial_state"
+            )
         patch_list: "list[Patch]" = []
 
         with self._alch.get_session() as session:
@@ -102,3 +116,8 @@ class ChangeMonitor:
 
         log.info("Max record id after patch: %d", self._max_record_id)
         return json.dumps(patch_list, cls=PatchEncoder)
+
+
+class States(Enum):
+    INITIALIZED = 0
+    GOT_INITIAL_STATE = 1
