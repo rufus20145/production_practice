@@ -2,16 +2,17 @@
 <html lang="ru">
   <head>
     <title>API Keys</title>
+    <link rel="stylesheet" href="/static/css/main.css" />
+    <link rel="stylesheet" href="/static/css/table.css" />
   </head>
   <body>
-    <table>
+    <table class="table">
       <thead>
         <tr>
           <th>Name</th>
           <th>Description</th>
           <th>Created At</th>
           <th>Valid until</th>
-          <th></th>
           <th>key</th>
         </tr>
       </thead>
@@ -22,13 +23,12 @@
             <td>{{ api_key.description }}</td>
             <td>{{ api_key.created_at }}</td>
             <td>{{ api_key.valid_until }}</td>
-            <td></td>
             <td>{{ api_key.key }}</td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
 
-    <a href="/"><button style="margin-top: 25px;">Back to main page</button></a>
+    <a href="/"><button class="home_button">Back to main page</button></a>
   </body>
 </html>
