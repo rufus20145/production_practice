@@ -74,9 +74,9 @@ class ChangeMonitor:
             )
 
             result = session.scalars(query)
-            entites = result.all()
+            entities = result.all()
 
-        for entity in entites:
+        for entity in entities:
             if entity.record_id > self._max_record_id:
                 self._max_record_id = entity.record_id
 
