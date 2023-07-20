@@ -99,41 +99,41 @@ async def get_api_keys(request: Request):
 
 
 @app.get("/api/v1/get_initial_data", response_class=HTMLResponse)
-def get_initial_data(api_key_str: str):
+def get_initial_data(api_key: str):
     with db.get_session() as session:
-        query = sa.select(ApiKey).filter(ApiKey.key == api_key_str)
-        api_key = session.scalar(query)
-    if api_key is None:
+        query = sa.select(ApiKey).filter(ApiKey.key == api_key)
+        api_key_obj = session.scalar(query)
+    if api_key_obj is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API key"
         )
-    if api_key.is_valid:
-        if api_key.key in monitors:
+    if api_key_obj.is_valid:
+        if api_key_obj.key in monitors:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="You have already got initial data",
             )
         monitor = ChangeMonitor(DEFAULT_FILENAME)
-        monitors[api_key.key] = monitor
+        monitors[api_key_obj.key] = monitor
         return monitor.get_initial_state()
 
 
 @app.get("/api/v1/get_updates", response_class=HTMLResponse)
-def get_updates(api_key_str: str):
+def get_updates(api_key: str):
     with db.get_session() as session:
-        query = sa.select(ApiKey).filter(ApiKey.key == api_key_str)
-        api_key = session.scalar(query)
-    if api_key is None:
+        query = sa.select(ApiKey).filter(ApiKey.key == api_key)
+        api_key_obj = session.scalar(query)
+    if api_key_obj is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API key"
         )
-    if api_key.is_valid:
-        if api_key.key not in monitors:
+    if api_key_obj.is_valid:
+        if api_key_obj.key not in monitors:
             raise HTTPException(
                 status_code=status.HTTP_425_TOO_EARLY,
                 detail="You need to get initial data first",
             )
-        monitor = monitors[api_key.key]
+        monitor = monitors[api_key_obj.key]
         return monitor.get_update()
 
 
