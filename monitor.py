@@ -8,6 +8,7 @@ API для отслеживания изменений объектов. Для 
 from enum import Enum
 import json
 import logging as log
+from typing import Callable, Optional
 
 import sqlalchemy as sa
 from errors import WrongStateError
@@ -15,7 +16,7 @@ from errors import WrongStateError
 from model.base import Alchemy
 from model.model import Entity, EntityEncoder, Patch, PatchEncoder
 
-func: callable
+func: Callable
 
 
 class ChangeMonitor:
@@ -25,19 +26,20 @@ class ChangeMonitor:
 
     def __init__(
         self,
-        filename: str = None,
-        dburl: str = None,
+        filename: Optional[str] = None,
+        dburl: Optional[str] = None,
     ):
         self._alch = Alchemy(dburl=dburl, filename=filename)
         self._state = States.INITIALIZED
 
-        log.info("Initialized")
+        log.info("Initialized change monitor")
 
     def get_initial_state(self) -> str:
-        if self._state != States.INITIALIZED:
+        if self._state is not States.INITIALIZED:
             raise WrongStateError(
                 "Can`t get initial state, because state is %s" % self._state
             )
+
         with self._alch.get_session() as session:
             subq = (
                 sa.select(
@@ -74,10 +76,11 @@ class ChangeMonitor:
             self._state = States.GOT_INITIAL_STATE
 
     def get_update(self) -> str:
-        if self._state != States.GOT_INITIAL_STATE:
+        if self._state is not States.GOT_INITIAL_STATE:
             raise WrongStateError(
                 "Can`t get update, because you didn`t call get_initial_state"
             )
+
         patch_list: "list[Patch]" = []
 
         with self._alch.get_session() as session:
