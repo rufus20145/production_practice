@@ -3,13 +3,14 @@
   <head>
     <title>One object by id</title>
     <link rel="stylesheet" href="/static/css/main.css" />
+    <link rel="stylesheet" href="/static/css/table.css" />
   </head>
   <body>
     <h1>Object with id {{ entity_id }}</h1>
 
     {% if entities %}
-      <table>
-        <caption>History of change:</caption>
+      <table class="table">
+        <caption style="font-size: 40px; padding-bottom: 20px;">History of change:</caption>
         <tr>
           <th>Record ID</th>
           <th>Foo</th>
