@@ -33,6 +33,15 @@ class Entity(Base):
         bar: str,
         record_id: Optional[int] = None,
     ) -> None:
+        """
+        Создает новую отслеживаемую сущность.
+
+        Args:
+            entity_id (int): Идентификатор сущности.
+            foo (str): Значение атрибута "foo".
+            bar (str): Значение атрибута "bar".
+            record_id (int, optional): Идентификатор записи. Если не указан, будет сгенерирован автоматически. (default: None)
+        """
         self.entity_id = entity_id
         self.foo = foo
         self.bar = bar
@@ -64,6 +73,15 @@ class ApiKey(Base):
         created_at: Optional[dt.datetime] = None,
         valid_until: Optional[dt.datetime] = None,
     ) -> None:
+        """
+        Создает новый API ключ.
+
+        Args:
+            name (str): Имя ключа.
+            description (str, optional): Описание ключа. (default: None)
+            created_at (dt.datetime, optional): Дата и время создания ключа. Если не указано, используется текущее время. (default: None)
+            valid_until (dt.datetime, optional): Дата и время истечения срока действия ключа. Если не указано, используется текущая дата с увеличением месяца на 1. (default: None)
+        """
         self.name = name
         self.description = description if description else ""
         if created_at:
@@ -74,10 +92,22 @@ class ApiKey(Base):
         self.key = ApiKey._generate_api_key()
 
     def is_valid(self) -> bool:
+        """
+        Проверяет, является ли ключ действительным (не истек срок действия).
+
+        Returns:
+            bool: True, если ключ действителен, иначе False.
+        """
         return self.valid_until > dt.datetime.now()
 
     @staticmethod
     def _generate_api_key() -> str:
+        """
+        Генерирует новый API ключ.
+
+        Returns:
+            str: Сгенерированный API ключ.
+        """
         return secrets.token_hex(KEY_LENGTH)
 
 
@@ -96,6 +126,17 @@ class Patch:
         path: Optional[str] = None,
         value: Any = None,
     ) -> None:
+        """
+        Создает объект для возврата в формате JSON Patch.
+
+        Args:
+            operation (str, optional): Операция патча. Допустимые значения: "replace" (замена значения) или "add" (добавление значения). (default: "replace")
+            path (str, optional): Путь к элементу, который будет изменен или добавлен. (default: None)
+            value (Any, optional): Значение, которое будет установлено. (default: None)
+
+        Raises:
+            ParameterError: Если указана неподдерживаемая операция.
+        """
         if operation not in self._SUPPORTED_OPERATIONS:
             raise ParameterError(
                 f"Unsupported operation: {operation}. Supported operations: {self._SUPPORTED_OPERATIONS}"  # noqa: E501
@@ -107,6 +148,15 @@ class Patch:
 
 class EntityEncoder(json.JSONEncoder):
     def default(self, o: Entity) -> Any:
+        """
+        Преобразует объект Entity в JSON-представление.
+
+        Args:
+            o (Entity): Объект Entity для преобразования.
+
+        Returns:
+            Any: JSON-представление объекта Entity.
+        """
         if isinstance(o, Entity):
             return {
                 "foo": o.foo,
@@ -117,6 +167,15 @@ class EntityEncoder(json.JSONEncoder):
 
 class PatchEncoder(json.JSONEncoder):
     def default(self, o: Patch) -> Any:
+        """
+        Преобразует объект Patch в JSON-представление.
+
+        Args:
+            o (Patch): Объект Patch для преобразования.
+
+        Returns:
+            Any: JSON-представление объекта Patch.
+        """
         if isinstance(o, Patch):
             return {
                 "op": o.operation,
@@ -128,6 +187,15 @@ class PatchEncoder(json.JSONEncoder):
 
 class ApiKeyEncoder(json.JSONEncoder):
     def default(self, o: ApiKey) -> Any:
+        """
+        Преобразует объект ApiKey в JSON-представление.
+
+        Args:
+            o (ApiKey): Объект ApiKey для преобразования.
+
+        Returns:
+            Any: JSON-представление объекта ApiKey.
+        """
         if isinstance(o, ApiKey):
             return {
                 "name": o.name,

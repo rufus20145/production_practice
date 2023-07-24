@@ -20,6 +20,20 @@ func: Callable
 
 
 class ChangeMonitor:
+    """
+    Класс ChangeMonitor предоставляет API для отслеживания изменений объектов.
+
+    Для работы с классом необходимо передать в конструктор строку с URL в формате SQLAlchemy,
+    либо имя файла, в котором находятся параметры, необходимые для подключения к базе данных.
+
+    При вызове метода получения обновлений (get_update) ранее метода получения начального состояния
+    (get_initial_state) правильная работа не гарантируется.
+
+    Args:
+        filename (Optional[str]): Имя файла, содержащего параметры для подключения к базе данных.
+        dburl (Optional[str]): URL в формате SQLAlchemy для подключения к базе данных.
+    """
+
     _max_record_id = 0
     _cache: "dict[int, Entity]" = {}
     _alch: Alchemy
@@ -29,12 +43,29 @@ class ChangeMonitor:
         filename: Optional[str] = None,
         dburl: Optional[str] = None,
     ):
+        """
+        Конструктор класса ChangeMonitor.
+
+        Args:
+            filename (Optional[str]): Имя файла, содержащего параметры для подключения к базе данных.
+            dburl (Optional[str]): URL в формате SQLAlchemy для подключения к базе данных.
+
+        """
         self._alch = Alchemy(dburl=dburl, filename=filename)
         self._state = States.INITIALIZED
 
         log.info("Initialized change monitor")
 
     def get_initial_state(self) -> str:
+        """
+        Получает начальное состояние объектов.
+
+        Returns:
+            str: JSON-представление начального состояния объектов.
+
+        Raises:
+            WrongStateError: Если метод вызывается не после инициализации объекта ChangeMonitor.
+        """
         if self._state is not States.INITIALIZED:
             raise WrongStateError(
                 "Can`t get initial state, because state is %s" % self._state
@@ -76,6 +107,15 @@ class ChangeMonitor:
             self._state = States.GOT_INITIAL_STATE
 
     def get_update(self) -> str:
+        """
+        Получает обновления объектов.
+
+        Returns:
+            str: JSON-представление списка обновлений объектов.
+
+        Raises:
+            WrongStateError: Если метод вызывается до того, как был получен начальный состояние методом get_initial_state.
+        """
         if self._state is not States.GOT_INITIAL_STATE:
             raise WrongStateError(
                 "Can`t get update, because you didn`t call get_initial_state"
@@ -122,5 +162,13 @@ class ChangeMonitor:
 
 
 class States(Enum):
+    """
+    Перечисление States представляет возможные состояния объекта ChangeMonitor.
+
+    INITIALIZED: Состояние, когда объект инициализирован и готов к получению начального состояния.
+    GOT_INITIAL_STATE: Состояние, когда объект получил начальное состояние и готов к получению обновлений.
+
+    """
+
     INITIALIZED = 0
     GOT_INITIAL_STATE = 1

@@ -12,6 +12,13 @@ class Alchemy:
     _instance: Optional["Alchemy"] = None
 
     def __new__(cls, *args, **kwargs) -> "Alchemy":
+        """
+        Создает новый экземпляр класса Alchemy или возвращает уже существующий,
+        если экземпляр уже был создан.
+
+        Returns:
+            Alchemy: Экземпляр класса Alchemy.
+        """
         if not cls._instance:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -19,6 +26,16 @@ class Alchemy:
     def __init__(
         self, dburl: Optional[str] = None, filename: Optional[str] = None
     ) -> None:
+        """
+        Инициализирует объект Alchemy для работы с базой данных.
+
+        Args:
+            dburl (Optional[str]): Строка подключения к базе данных SQLAlchemy.
+            filename (Optional[str]): Имя файла, содержащего настройки подключения к базе данных.
+
+        Raises:
+            ParameterError: Если не указаны ни dburl, ни filename.
+        """
         if dburl:
             self._dburl = dburl
         elif filename:
@@ -47,14 +64,23 @@ class Alchemy:
 
     def get_session(self) -> Session:
         """
-        Get a new session.
+        Возвращает новую сессию SQLAlchemy.
 
         Returns:
-            Session: The SQLAlchemy session object.
+            Session: Объект сессии SQLAlchemy.
         """
         return self._session_factory()
 
     def _check_required_fields(self, fields: dict) -> None:
+        """
+        Проверяет наличие обязательных полей в данных конфигурации.
+
+        Args:
+            fields (dict): Словарь с данными конфигурации.
+
+        Raises:
+            ParameterError: Если некоторые обязательные поля отсутствуют в данных конфигурации.
+        """
         required_fields = [
             "dialect",
             "driver",
