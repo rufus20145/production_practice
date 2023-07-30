@@ -20,7 +20,7 @@ db = Alchemy(filename=DEFAULT_FILENAME)
 monitors = {}
 
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
@@ -74,7 +74,7 @@ async def start(request: Request):
 @app.post("/api/v1/create", response_class=JSONResponse)
 async def create_api_key(
     name: Annotated[str, Form()],
-    description: Annotated[str, Form()],
+    description: Annotated[str, Form()] = "",
 ):
     api_key = ApiKey(name=name, description=description)
 
