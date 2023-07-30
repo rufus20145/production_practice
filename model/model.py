@@ -57,13 +57,8 @@ class ApiKey(Base):
     )
     name: so.Mapped[str] = so.mapped_column(sa.String(255))
     description: so.Mapped[str] = so.mapped_column(sa.String(500))
-    created_at: so.Mapped[dt.datetime] = so.mapped_column(
-        sa.DateTime, default=dt.datetime.now()
-    )
-    valid_until: so.Mapped[dt.datetime] = so.mapped_column(
-        sa.DateTime,
-        default=dt.datetime.now().replace(month=dt.datetime.now().month + 1),
-    )
+    created_at: so.Mapped[dt.datetime] = so.mapped_column(sa.DateTime)
+    valid_until: so.Mapped[dt.datetime] = so.mapped_column(sa.DateTime)
     key: so.Mapped[str] = so.mapped_column(sa.String(KEY_LENGTH * 2))
 
     def __init__(
@@ -84,10 +79,12 @@ class ApiKey(Base):
         """
         self.name = name
         self.description = description if description else ""
-        if created_at:
-            self.created_at = created_at
-        if valid_until:
-            self.valid_until = valid_until
+        self.created_at = created_at if created_at else dt.datetime.now()
+        self.valid_until = (
+            valid_until
+            if valid_until
+            else dt.datetime.now().replace(month=dt.datetime.now().month + 1)
+        )
 
         self.key = ApiKey._generate_api_key()
 
